@@ -29,7 +29,8 @@ class GoogleDriveFilesUpload extends GoogleApi {
 		$request['body'] = file_get_contents($file['tmp_name']);
 
 		// using CakeReponse to guess mime type
-		$ext = array_pop(explode('.', $file['name']));
+		$parts = explode('.', $file['name']);
+		$ext = array_pop($parts);
 		$CR = new CakeResponse();
 		$request['header']['Content-Type'] = $CR->getMimeType($ext);
 		return $this->_request($path, $request);

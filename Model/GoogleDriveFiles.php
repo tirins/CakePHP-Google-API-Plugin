@@ -34,15 +34,28 @@ class GoogleDriveFiles extends GoogleApi {
 
 	/**
 	 * https://developers.google.com/drive/v2/reference/files/insert
+	 * $parentFolders array of parent folder ids
 	 **/
-	public function insertFile($file, $options = array()) {
+	public function insertFile($file, $parentFolders = array(), $options = array()) {
+		if(!empty($parentFolders)){
+			$parentFolders = Hash::map($parentFolders, '{n}', function($el){
+				return array(
+						'id' => $el, 
+						'kind' => 'drive#fileLink'
+					);
+				
+			});
+		}
+
 		$request = array();
 		$request['method'] = 'POST';
 		$body = array(
 			'title' => $file['name'],
-			'mimeType' => $file['type']
+			'mimeType' => $file['type'],
+			'parents' => $parentFolders
 		);
 		$request['body'] = json_encode($body);
+		//debug($request['body']);
 		$request['header']['Content-Type'] = 'application/json';
 		return $this->GoogleDriveFilesUpload->insertFile(
 			$file, $this->_request(null, $request),
@@ -58,6 +71,26 @@ class GoogleDriveFiles extends GoogleApi {
 		if ($options) {
 			$request['uri']['query'] = $options;
 		}
+		return $this->_request(null, $request);
+	}
+
+	public function insertFolder($foldername, $parentFolders = array(), $options = array()){
+		$request = array();
+		$request['method'] = 'POST';
+		$foldermime = 'application/vnd.google-apps.folder';
+		$body = array(
+			'title' => $foldername,
+			'mimeType' => $foldermime,
+			'parents' => array($parentFolders)
+		);
+		$request['body'] = json_encode($body);
+		//debug($request['body']);
+		$request['header']['Content-Type'] = 'application/json';
+		
+		if ($options) {
+			$request['uri']['query'] = $options;
+		}
+		
 		return $this->_request(null, $request);
 	}
 }
